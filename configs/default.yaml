@@ -1,0 +1,61 @@
+# Pipeline configuration. Every stage reads this file; CLI flags override with
+# dotted keys, e.g.  python -m parking.train --config configs/default.yaml --train.lr 1e-4
+paths:
+  raw_labels: Data/Parkovani_praha.geojson
+  labels: data/labels/labels_5514.gpkg
+  sheet_index: data/labels/sheet_index.gpkg
+  sheets_dir: data/sheets          # transient: sheets are deleted after chipping
+  chips_dir: data/chips
+  runs_dir: data/runs
+  predictions_dir: data/predictions
+
+crs:
+  target: "EPSG:5514"              # S-JTSK / Krovak East North (CUZK native)
+
+atom:
+  feed_url: "https://atom.cuzk.gov.cz/ORTOFOTO/ORTOFOTO.xml"
+  # substring used to pick the S-JTSK variant among per-sheet dataset links
+  crs_hint: "5514"
+
+chips:
+  size: 512                        # px, at native GSD -> 64 x 64 m
+  gsd: 0.125                       # m/px, CUZK Ortofoto since 2021
+  center_jitter: 16.0              # m, random jitter of positive chip centers
+  cluster_step: 48.0               # m, extra centers along large label clusters
+  min_center_dist: 32.0            # m, dedup radius for chip centers
+  neg_ratio: 0.5                   # negatives per positive
+  neg_ring_inner: 30.0             # m, negatives sampled no closer than this to labels
+  neg_ring_outer: 300.0            # m, ... and no farther than this
+  ignore_buffer: 0.5               # m, ignore band around polygon boundaries (255 in mask)
+  min_label_area: 3.0              # m2, drop sliver polygons
+  jpeg_quality: 88
+  max_chips: 40000
+  val_fraction: 0.15               # fraction of SM5 sheets held out (contiguous blocks)
+  split_seed: 42
+
+train:
+  arch: unet                       # unet | deeplabv3plus | segformer
+  encoder: timm-efficientnet-b3    # for segformer use e.g. mit_b2
+  encoder_weights: imagenet
+  epochs: 50
+  batch_size: 16
+  lr: 3.0e-4
+  encoder_lr: 1.0e-4
+  weight_decay: 1.0e-4
+  warmup_epochs: 2
+  bce_smooth: 0.05
+  dice_weight: 0.5
+  amp: true
+  num_workers: 8
+  early_stop_patience: 12
+  limit_batches: 0                 # >0 = smoke test: run only N batches/epoch
+  seed: 42
+
+infer:
+  window: 512
+  stride: 384                      # 128 px overlap, Hann-blended
+  batch_size: 8
+  threshold: 0.5                   # sweep on val before freezing
+  min_area: 8.0                    # m2, drop predicted polygons below this
+  simplify_tol: 0.25               # m (2 px)
+  save_probs: false                # also write prob GeoTIFF per sheet

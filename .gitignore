@@ -1,2 +1,8 @@
-Data
+data/
 venv
+.venv/
+.idea/
+__pycache__/
+*.pyc
+runs/
+*.ipynb_checkpoints
