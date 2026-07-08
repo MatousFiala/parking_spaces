@@ -1,7 +1,7 @@
 # Pipeline configuration. Every stage reads this file; CLI flags override with
 # dotted keys, e.g.  python -m parking.train --config configs/default.yaml --train.lr 1e-4
 paths:
-  raw_labels: Data/Parkovani_praha.geojson
+  raw_labels: Parkovani_praha.geojson
   labels: data/labels/labels_5514.gpkg
   sheet_index: data/labels/sheet_index.gpkg
   sheets_dir: data/sheets          # transient: sheets are deleted after chipping

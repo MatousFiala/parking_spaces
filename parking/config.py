@@ -14,7 +14,7 @@ import yaml
 
 @dataclass
 class Paths:
-    raw_labels: str = "Data/Parkovani_praha.geojson"
+    raw_labels: str = "Parkovani_praha.geojson"
     labels: str = "data/labels/labels_5514.gpkg"
     sheet_index: str = "data/labels/sheet_index.gpkg"
     sheets_dir: str = "data/sheets"
